@@ -1,0 +1,19 @@
+[Unit]
+Description=Kubernetes Kubelet
+Documentation=https://github.com/kubernetes/kubernetes
+Requires=docker.service
+After=docker.service
+
+[Service]
+ExecStart=/usr/local/sbin/kubelet \
+  --manifest-url=http://169.254.169.254/latest/user-data \
+  --allow-privileged=true \
+  --address=127.0.0.1 \
+  --v=0
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target

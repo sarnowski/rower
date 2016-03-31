@@ -1,0 +1,107 @@
+---
+name: rower-{system.architecture}-{provider.virtualization}-{volume.backing}-{%Y}{%m}{%d}-{%H}{%M}
+provider:
+  name: ec2
+  virtualization: hvm
+  enhanced_networking: simple
+  description: Rower operating system ({system.architecture} {provider.virtualization} {volume.backing}); https://github.com/sarnowski/rower
+bootstrapper:
+  workspace: /target
+system:
+  release: jessie
+  architecture: amd64
+  bootloader: grub
+  charmap: UTF-8
+  locale: en_US
+  timezone: UTC
+volume:
+  backing: ebs
+  partitions:
+    type: msdos
+    root:
+      filesystem: ext4
+      size: 8GiB
+packages:
+  mirror: http://cloudfront.debian.net/debian
+  install:
+    # these packages are included in the official image
+    - python-boto
+    - python3-boto
+    - apt-transport-https
+    - lvm2
+    - ncurses-term
+    - parted
+    - bootlogd
+    - cloud-init
+    - cloud-utils
+    - gdisk
+    - sysvinit
+    - systemd
+    - systemd-sysv
+
+    # these packages are included in the official image, but we remove them
+    # awscli : we install from pip instead
+
+    # cloud-initramfs-growroot will resize the master partition on boot
+    - cloud-initramfs-growroot
+    # These packages would otherwise be installed during first boot
+    - aufs-tools
+    - curl
+    - python-yaml
+    - git
+    - nfs-common
+    - bridge-utils
+    - logrotate
+    - socat
+    - python-apt
+    - apt-transport-https
+    - unattended-upgrades
+    - lvm2
+    - btrfs-tools
+
+    # So we can install the latest awscli
+    - python-pip
+plugins:
+  cloud_init:
+    metadata_sources: Ec2
+    username: admin
+  ntp: {}
+  commands:
+    commands:
+       # Install python-pip
+       - [ 'chroot', '{root}', 'pip', 'install', 'awscli' ]
+
+       # Install docker 1.9.1
+       - [ 'wget', 'http://apt.dockerproject.org/repo/pool/main/d/docker-engine/docker-engine_1.9.1-0~jessie_amd64.deb', '-O', '{root}/tmp/docker.deb' ]
+       - [ '/bin/sh', '-c', 'cd {root}/tmp; echo "c58c39008fd6399177f6b2491222e4438f518d78  docker.deb" | shasum -c -' ]
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --assume-yes libapparmor1' ]
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'DEBIAN_FRONTEND=noninteractive dpkg --install /tmp/docker.deb' ]
+       - [ 'rm', '{root}/tmp/docker.deb' ]
+
+       # Fix a cloud-init bug where it uses nobootwait
+       # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=789884
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'echo "mount_default_fields: [~, ~, ''auto'', ''defaults,nofail'', ''0'', ''2'']" > /etc/cloud/cloud.cfg.d/99_kubernetes.cfg' ]
+
+       # We perform a full replacement of some grub conf variables:
+       #   GRUB_CMDLINE_LINUX_DEFAULT (add memory cgroup)
+       #   GRUB_TIMEOUT (remove boot delay)
+       # (but leave the old versions commented out for people to see)
+       - [ 'chroot', '{root}', 'touch', '/etc/default/grub' ]
+       - [ 'chroot', '{root}', 'sed', '-i', 's/^GRUB_CMDLINE_LINUX_DEFAULT=/#GRUB_CMDLINE_LINUX_DEFAULT=/g', '/etc/default/grub' ]
+       - [ 'chroot', '{root}', 'sed', '-i', 's/^GRUB_TIMEOUT=/#GRUB_TIMEOUT=/g', '/etc/default/grub' ]
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'echo "# kubernetes image changes" >> /etc/default/grub' ]
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'echo "GRUB_CMDLINE_LINUX_DEFAULT=\"cgroup_enable=memory oops=panic panic=10 console=ttyS0\"" >> /etc/default/grub' ]
+       - [ 'chroot', '{root}', '/bin/sh', '-c', 'echo "GRUB_TIMEOUT=0" >> /etc/default/grub' ]
+       - [ 'chroot', '{root}', 'update-grub2' ]
+
+       # install kubelet
+       - ['mkdir', '-p', '{root}/usr/local/sbin']
+       - ['wget', '-nv', '-O', '{root}/usr/local/sbin/kubelet', 'https://storage.googleapis.com/kubernetes-release/release/v1.2.0/bin/linux/amd64/kubelet']
+       - ['chmod', '0755', '{root}/usr/local/sbin/kubelet']
+  file_copy:
+    files:
+    - src: kubelet.service
+      dst: '/etc/systemd/system/kubelet.service'
+      permissions: '0644'
+      owner: root
+      group: root
