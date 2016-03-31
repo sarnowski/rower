@@ -63,8 +63,8 @@ where servers and not containers are the first-class citizens.
   to check out the `0.9.9-squeeze` tag (`master` is broken).
 * Check out this repository.
 * Set the environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` to keys
-  of an IAM user with EC2 API privileges. (EC2 instance profiles are currently
-  not supported by bootstrap-vz).
+  of an IAM user with EC2 API privileges. ([EC2 instance profiles are currently
+  not supported by bootstrap-vz](https://github.com/andsens/bootstrap-vz/issues/259)).
 * Run `../bootstrap-vz/bootstrap-vz bootstrap.yaml`.
   * `bootstrap-vz` will complain for all dependencies, that are missing.
     Install them when they pop up. The
