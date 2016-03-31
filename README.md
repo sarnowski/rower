@@ -45,6 +45,15 @@ data and the server will execute it on start.
 
 TODO provide AWS CloudFormation template for full bootstrapping nginx
 
+You can find more examples of pods in the
+[Kubernetes examples](https://github.com/kubernetes/kubernetes/tree/master/examples)
+section. Remember that this OS is only executing Pod specifications.
+Replication controllers, auto scaling, load balancing and similar
+infrastructure capabilities need to be solved by the cloud provider. This
+easily integrates with for example the Amazon Web Services. Rower is
+specifically made for operating Kubernetes' Pods within the normal AWS
+infrastructure, leveraging auto scaling groups, elastic load balancers, etc.
+
 ## Building the AMI
 
 * Start up a small AWS instance with the Debian 8.x (Jessie) AMI.
