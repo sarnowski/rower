@@ -52,7 +52,8 @@ Replication controllers, auto scaling, load balancing and similar
 infrastructure capabilities need to be solved by the cloud provider. This
 easily integrates with for example the Amazon Web Services. Rower is
 specifically made for operating Kubernetes' Pods within the normal AWS
-infrastructure, leveraging auto scaling groups, elastic load balancers, etc.
+infrastructure, leveraging auto scaling groups, elastic load balancers, etc,
+where servers and not containers are the first-class citizens.
 
 ## Building the AMI
 
