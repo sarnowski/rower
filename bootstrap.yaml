@@ -63,13 +63,6 @@ plugins:
     metadata_sources: Ec2
     username: admin
   ntp: {}
-  file_copy:
-    files:
-    - src: kubelet.service
-      dst: '/etc/systemd/system/kubelet.service'
-      permissions: '0644'
-      owner: root
-      group: root
   commands:
     commands:
        # Install docker 1.9.1
@@ -96,7 +89,9 @@ plugins:
        - [ 'chroot', '{root}', 'update-grub2' ]
 
        # install kubelet
-       - [ 'mkdir', '-p', '{root}/usr/local/sbin' ]
+       - [ 'mkdir', '-p', '{root}/usr/local/sbin', '{root}/etc/systemd/system' ]
        - [ 'wget', '-nv', '-O', '{root}/usr/local/sbin/kubelet', 'https://storage.googleapis.com/kubernetes-release/release/v1.2.0/bin/linux/amd64/kubelet' ]
        - [ 'chmod', '0755', '{root}/usr/local/sbin/kubelet' ]
+       - [ 'cp', 'kubelet.service', '{root}/etc/systemd/system/kubelet.service' ]
+       - [ 'chown', 'root:root', '{root}/etc/systemd/system/kubelet.service' ]
        - [ 'chroot', '{root}', 'systemctl', 'enable', 'kubelet' ]
