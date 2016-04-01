@@ -8,7 +8,8 @@ provider:
   install_init_scripts: false
 bootstrapper:
   workspace: /target
-  tarball: true  # dev only
+# DEV ONLY:
+#  tarball: true
 system:
   release: jessie
   architecture: amd64
@@ -25,28 +26,12 @@ volume:
       size: 8GiB
 packages:
   mirror: http://cloudfront.debian.net/debian
-#TODO remove?  install:
-#TODO remove?    - ca-certificates
-#TODO remove?    - bootlogd
-#TODO remove?    - sysvinit
-#TODO remove?    - systemd
-#TODO remove?    - systemd-sysv
-#TODO remove?    - cloud-initramfs-growroot # necessary because no cloud-init?
-#TODO remove?    - logrotate
 plugins:
-#TODO remove?  cloud_init:
-#TODO remove?    metadata_sources: Ec2
-#TODO remove?    username: admin
   ntp: {}
+  docker_daemon:
+    version: 1.9.1
   commands:
     commands:
-       # Install docker 1.9.1
-       - [ 'wget', '-nv', 'http://apt.dockerproject.org/repo/pool/main/d/docker-engine/docker-engine_1.9.1-0~jessie_amd64.deb', '-O', '{root}/tmp/docker.deb' ]
-       - [ '/bin/sh', '-c', 'cd {root}/tmp; echo "c58c39008fd6399177f6b2491222e4438f518d78  docker.deb" | shasum -c -' ]
-       - [ 'chroot', '{root}', '/bin/sh', '-c', 'DEBIAN_FRONTEND=noninteractive dpkg --install /tmp/docker.deb' ]
-       - [ 'chroot', '{root}', '/bin/sh', '-c', 'DEBIAN_FRONTEND=noninteractive apt-get install -f --no-install-recommends --assume-yes' ]
-       - [ 'rm', '{root}/tmp/docker.deb' ]
-
        # Fix a cloud-init bug where it uses nobootwait
        # see https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=789884
 #TODO remove?       - [ 'chroot', '{root}', '/bin/sh', '-c', 'echo "mount_default_fields: [~, ~, ''auto'', ''defaults,nofail'', ''0'', ''2'']" > /etc/cloud/cloud.cfg.d/99_kubernetes.cfg' ]
@@ -71,3 +56,7 @@ plugins:
        - [ 'cp', 'kubelet.service', '{root}/etc/systemd/system/kubelet.service' ]
        - [ 'chown', 'root:root', '{root}/etc/systemd/system/kubelet.service' ]
        - [ 'chroot', '{root}', 'systemctl', 'enable', 'kubelet' ]
+
+# DEV ONLY:
+#  root_password:
+#    password: foobartest123
