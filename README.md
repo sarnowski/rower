@@ -59,8 +59,7 @@ where servers and not containers are the first-class citizens.
 
 * Start up a small AWS instance with the Debian 8.x (Jessie) AMI.
 * Check out the [bootstrap-vz](https://github.com/andsens/bootstrap-vz)
-  repository (Debian official cloud image build tool). Currently, you need
-  to check out the `v0.9.9-squeeze` tag (`master` is broken).
+  repository (Debian official cloud image build tool).
 * Check out this repository.
 * Set the environment variables `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` to keys
   of an IAM user with EC2 API privileges. ([EC2 instance profiles are currently
